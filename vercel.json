@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/kick-channel.js": {
+      "runtime": "nodejs22.x"
+    }
+  }
+}
