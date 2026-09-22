@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, Music2, Pause, Play, Repeat2, Volume2, VolumeX } from 'lucide-react'
 
 const TRACKS = [
-  { name: 'Music 1', src: `${import.meta.env.BASE_URL}audio/music1.mp3` },
+  { name: 'Music 1', src: '/audio/music1.mp3' },
   { name: 'Music 2', src: `${import.meta.env.BASE_URL}audio/music2.mp3` },
   { name: 'Music 3', src: `${import.meta.env.BASE_URL}audio/music3.mp3` },
 ]
@@ -15,10 +15,7 @@ function readStoredNumber(key, fallback) {
 
 function MusicPlayer({ language = 'en' }) {
   const audioRef = useRef(null)
-  const [currentTrack, setCurrentTrack] = useState(() => {
-    const storedTrack = Number.parseInt(localStorage.getItem('music-track'), 10)
-    return storedTrack >= 0 && storedTrack < TRACKS.length ? storedTrack : 0
-  })
+  const [currentTrack, setCurrentTrack] = useState(0)
   const [volume, setVolume] = useState(() => readStoredNumber('music-volume', DEFAULT_VOLUME))
   const [muted, setMuted] = useState(() => localStorage.getItem('music-muted') === 'true')
   const [enabled, setEnabled] = useState(() => localStorage.getItem('music-enabled') === 'true')
@@ -46,6 +43,13 @@ function MusicPlayer({ language = 'en' }) {
     audio.volume = volume
     audio.muted = muted
   }, [loopEnabled, muted, volume])
+
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio || !trackAvailability[0]) return
+
+    audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false))
+  }, [trackAvailability])
 
   useEffect(() => {
     localStorage.setItem('music-volume', String(volume))

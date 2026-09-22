@@ -4,6 +4,7 @@ import { moreLinks } from './config/moreLinks'
 import { socialLinks } from './config/socialLinks'
 import { translations } from './config/translations'
 import { getKickChannel, normalizeKickChannel } from './services/kick'
+import IntroScreen from './components/IntroScreen'
 import MusicPlayer from './components/MusicPlayer'
 import useTilt from './hooks/useTilt'
 import './App.css'
@@ -68,7 +69,9 @@ function App() {
   const scrollTo = (id) => { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); closeMenu() }
   const changeLanguage = (nextLanguage) => { setLanguage(nextLanguage); closeMenu() }
 
-  return <div className="site-shell">
+  return <>
+    <IntroScreen />
+    <div className="site-shell">
     <div className="loading-line" aria-hidden="true" /><div className="scroll-progress" style={{ width: `${scrollProgress}%` }} />
     <header className="navbar"><a className="brand-mark" href="#home" onClick={closeMenu} aria-label={t.accessibility.home}><img src={`${import.meta.env.BASE_URL}images/logo.png`} alt="Aboshanb King" /></a><nav className={menuOpen ? 'nav-links is-open' : 'nav-links'} aria-label={t.accessibility.toggleNavigation}>{[['home', t.nav.home], ['live', t.nav.live], ['socials', t.nav.socials], ['links', t.nav.links], ['gallery', t.nav.gallery]].map(([id, label]) => <a key={id} href={`#${id}`} onClick={closeMenu}>{label}</a>)}<button className="nav-kick" type="button" onClick={() => openExternal(KICK_URL)}><Radio size={15} /> {t.nav.liveOnKick}</button></nav><div className="language-switcher" aria-label={t.switcherLabel}>{['en', 'ar'].map((option) => <button key={option} className={language === option ? 'is-active' : ''} type="button" onClick={() => changeLanguage(option)} aria-label={option === 'en' ? 'English' : 'Arabic'} aria-pressed={language === option}>{option.toUpperCase()}</button>)}</div><button className="menu-toggle" type="button" onClick={() => setMenuOpen(!menuOpen)} aria-label={t.accessibility.toggleNavigation} aria-expanded={menuOpen}>{menuOpen ? <X size={23} /> : <Menu size={23} />}</button></header>
     <main>
@@ -82,7 +85,8 @@ function App() {
     <MusicPlayer language={language} />
     {showTop && <button className="back-to-top" type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label={t.accessibility.backToTop}><ChevronLeft size={17} /></button>}
     {selectedImage !== null && <div className="lightbox" role="dialog" aria-modal="true" aria-label={t.accessibility.galleryViewer} onClick={() => setSelectedImage(null)}><button className="lightbox-close" type="button" onClick={() => setSelectedImage(null)} aria-label={t.accessibility.closeGallery}><X size={24} /></button><button className="lightbox-nav lightbox-prev" type="button" onClick={(event) => { event.stopPropagation(); setSelectedImage((selectedImage - 1 + galleryItems.length) % galleryItems.length) }} aria-label={t.accessibility.previousImage}><ChevronLeft size={28} /></button><img src={galleryItems[selectedImage].src} alt={galleryItems[selectedImage].alt} onClick={(event) => event.stopPropagation()} /><button className="lightbox-nav lightbox-next" type="button" onClick={(event) => { event.stopPropagation(); setSelectedImage((selectedImage + 1) % galleryItems.length) }} aria-label={t.accessibility.nextImage}><ChevronRight size={28} /></button></div>}
-  </div>
+    </div>
+  </>
 }
 
 export default App
