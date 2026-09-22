@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Music2, Pause, Play, Repeat2, Volume2, Volum
 const TRACKS = [
   { name: 'Music 1', src: `${import.meta.env.BASE_URL}audio/music1.mp3` },
   { name: 'Music 2', src: `${import.meta.env.BASE_URL}audio/music2.mp3` },
+  { name: 'Music 3', src: '/audio/music3.mp3' },
 ]
 const DEFAULT_VOLUME = 0.3
 
