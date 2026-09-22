@@ -62,3 +62,31 @@ html[dir='rtl'] .offline-state, html[dir='rtl'] .footer p { text-align: center; 
 @media (prefers-reduced-motion: reduce) {
 	.music-player.is-playing .music-player-indicator i { animation: none; height: 8px; }
 }
+
+.stream-status-card { justify-content: flex-start; gap: 14px; overflow: hidden; }
+.stream-status-media { position: relative; height: 142px; margin: -24px -24px 5px; overflow: hidden; background: #030914; }
+.stream-status-media::after { position: absolute; inset: 0; content: ''; background: linear-gradient(180deg, transparent 38%, rgba(2,7,18,.88)); pointer-events: none; }
+.stream-status-media img { width: 100%; height: 100%; display: block; object-fit: cover; opacity: .82; }
+.stream-status-badge { position: absolute; z-index: 1; right: 13px; bottom: 12px; display: inline-flex; align-items: center; gap: 7px; padding: 6px 8px; color: var(--muted); border: 1px solid rgba(139,155,180,.3); background: rgba(2,7,18,.8); font-size: 9px; font-weight: 700; letter-spacing: .12em; }
+.stream-status-badge i { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+.stream-status-badge.is-live { color: var(--white); border-color: rgba(0,217,255,.45); }
+.stream-status-badge.is-live i { background: #ff3d54; box-shadow: 0 0 11px #ff3d54; animation: stream-pulse 1.4s ease-in-out infinite; }
+.stream-status-viewers { display: flex; align-items: center; gap: 9px; color: var(--cyan); font-size: 12px; }
+.stream-status-viewers svg { flex: 0 0 auto; }
+.stream-status-viewers strong { color: var(--white); font-family: var(--font-display); font-size: 20px; letter-spacing: .04em; }
+.stream-status-title { min-height: 35px; color: var(--muted); font-size: 12px; line-height: 1.45; }
+.stream-status-link { margin-top: auto; }
+@keyframes stream-pulse { 50% { opacity: .4; transform: scale(.75); } }
+
+@media (max-width: 900px) {
+	.stream-status-card { min-height: 230px; }
+	.stream-status-media { height: 160px; }
+}
+
+@media (max-width: 650px) {
+	.stream-status-media { height: 150px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.stream-status-badge.is-live i { animation: none; }
+}

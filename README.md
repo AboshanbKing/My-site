@@ -1,5 +1,18 @@
 # React + Vite
 
+## KICK live data
+
+The site reads live status and viewer counts from the official KICK Public API through `api/kick-channel.js`. The function keeps KICK credentials server-side and returns only the public channel data needed by the site.
+
+To deploy the proxy with Vercel:
+
+1. Import this repository into Vercel.
+2. Add `KICK_CLIENT_ID`, `KICK_CLIENT_SECRET`, `KICK_CHANNEL_SLUG`, and `KICK_ALLOWED_ORIGIN` as Vercel environment variables.
+3. Deploy the `api/kick-channel.js` function.
+4. Set the GitHub Pages build variable `VITE_KICK_API_URL` to the deployed function URL, for example `https://your-project.vercel.app/api/kick-channel`.
+
+Never put `KICK_CLIENT_SECRET` in `.env`, `VITE_*` variables, or frontend source code. Without `VITE_KICK_API_URL`, the UI safely shows unavailable viewer data because GitHub Pages cannot run the serverless function itself.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

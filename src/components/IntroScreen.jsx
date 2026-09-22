@@ -17,7 +17,10 @@ function IntroScreen() {
 
     document.body.style.overflow = 'hidden'
     const exitTimer = window.setTimeout(() => setPhase('exiting'), exitDelay)
-    const removeTimer = window.setTimeout(() => setPhase('removed'), removeDelay)
+    const removeTimer = window.setTimeout(() => {
+      document.body.style.overflow = originalOverflow
+      setPhase('removed')
+    }, removeDelay)
 
     return () => {
       window.clearTimeout(exitTimer)
