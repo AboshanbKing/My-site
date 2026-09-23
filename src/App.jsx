@@ -43,12 +43,20 @@ function App() {
     let active = true
     const loadKickChannel = () => getKickChannel().then((data) => { if (active) setChannel(normalizeKickChannel(data)) }).catch(() => { if (active) setChannel(normalizeKickChannel({})) }).finally(() => { if (active) setKickLoading(false) })
     loadKickChannel()
-    const refreshTimer = window.setInterval(loadKickChannel, 60000)
+    let refreshTimer = window.setInterval(loadKickChannel, 60000)
     return () => {
       active = false
       window.clearInterval(refreshTimer)
     }
   }, [])
+
+  useEffect(() => {
+    const interval = channel.isLive ? 15000 : 60000
+    const refreshTimer = window.setInterval(() => {
+      getKickChannel().then((data) => setChannel(normalizeKickChannel(data))).catch(() => {})
+    }, interval)
+    return () => window.clearInterval(refreshTimer)
+  }, [channel.isLive])
 
   useEffect(() => {
     const handleScroll = () => {

@@ -15,6 +15,7 @@ function getEnvironment() {
 
 let cachedToken = null
 let tokenExpiresAt = 0
+let lastKnownGoodResponse = null
 
 async function getAppAccessToken() {
   const { clientId, clientSecret } = getEnvironment()
@@ -177,7 +178,7 @@ export default async function handler(request, response) {
     const channelStream = channel.stream || null
     const isLive = Boolean(channelStream?.is_live) || Boolean(livestream)
 
-    return response.status(200).json({
+    const result = {
       apiAvailable: true,
       isLive,
       followersCount,
@@ -185,9 +186,22 @@ export default async function handler(request, response) {
       title: channel.stream_title || livestream?.title || '',
       profilePic: user?.profile_picture || livestream?.broadcaster_user?.profile_picture || '',
       livestream: livestream || (isLive ? channelStream : null),
-    })
+    }
+
+    lastKnownGoodResponse = result
+    return response.status(200).json(result)
   } catch (error) {
     console.error('Kick API error:', error)
+
+    if (lastKnownGoodResponse) {
+      return response.status(200).json({
+        ...lastKnownGoodResponse,
+        isLive: false,
+        viewerCount: null,
+        livestream: null,
+        stale: true,
+      })
+    }
 
     return response.status(502).json({
       apiAvailable: false,
