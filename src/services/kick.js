@@ -9,15 +9,17 @@ export async function getKickChannel() {
 
 export function normalizeKickChannel(data) {
   const livestream = data?.livestream
-  const followersCount = Number(data?.followers_count)
-  const rawViewerCount = livestream?.viewer_count ?? livestream?.viewers_count
+  const thumbnail = typeof livestream?.thumbnail === 'string' ? livestream.thumbnail : livestream?.thumbnail?.url
+  const followersValue = data?.followersCount ?? data?.followers_count
+  const followersCount = Number(followersValue)
+  const rawViewerCount = data?.viewerCount ?? livestream?.viewer_count ?? livestream?.viewers_count
   const viewerCount = Number(rawViewerCount)
   return {
     apiAvailable: data?.apiAvailable === true,
-    isLive: Boolean(livestream),
-    followersCount: Number.isFinite(followersCount) ? followersCount : null,
+    isLive: data?.isLive === true || Boolean(livestream),
+    followersCount: followersValue !== undefined && followersValue !== null && Number.isFinite(followersCount) ? followersCount : null,
     viewerCount: rawViewerCount !== undefined && rawViewerCount !== null && rawViewerCount !== '' && Number.isFinite(viewerCount) ? viewerCount : null,
-    title: livestream?.session_title || '',
-    streamImage: livestream?.thumbnail?.url || data?.user?.profile_pic || FALLBACK_STREAM_IMAGE,
+    title: data?.title || livestream?.session_title || '',
+    streamImage: data?.streamImage || thumbnail || data?.profilePic || data?.user?.profile_pic || FALLBACK_STREAM_IMAGE,
   }
 }

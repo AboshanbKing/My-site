@@ -1,47 +1,103 @@
 const KICK_API_URL = 'https://api.kick.com/public/v1'
+const KICK_LIVESTREAM_API_URL = 'https://api.kick.com/public/v2'
 const KICK_OAUTH_URL = 'https://id.kick.com/oauth/token'
-const DEFAULT_CHANNEL_SLUG = 'aboshanb-king'
-
-let cachedToken = null
-let tokenExpiresAt = 0
 
 function getEnvironment() {
   const environment = globalThis.process?.env || {}
   return {
     clientId: environment.KICK_CLIENT_ID,
     clientSecret: environment.KICK_CLIENT_SECRET,
-    channelSlug: environment.KICK_CHANNEL_SLUG || DEFAULT_CHANNEL_SLUG,
+    channelSlug: environment.KICK_CHANNEL_SLUG || 'aboshanb-king',
     allowedOrigin: environment.KICK_ALLOWED_ORIGIN || '*',
   }
 }
 
-async function getAppAccessToken(clientId, clientSecret) {
-  if (cachedToken && Date.now() < tokenExpiresAt) return cachedToken
+let cachedToken = null
+let tokenExpiresAt = 0
+
+async function getAppAccessToken() {
+  const { clientId, clientSecret } = getEnvironment()
+
+  if (!clientId || !clientSecret) {
+    throw new Error('Kick credentials are not configured')
+  }
+
+  if (cachedToken && Date.now() < tokenExpiresAt) {
+    return cachedToken
+  }
 
   const response = await fetch(KICK_OAUTH_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
-    body: new URLSearchParams({ grant_type: 'client_credentials', client_id: clientId, client_secret: clientSecret }),
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Accept: 'application/json',
+    },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: clientId,
+      client_secret: clientSecret,
+    }),
   })
-  if (!response.ok) throw new Error(`Kick token request failed with ${response.status}`)
 
-  const token = await response.json()
-  if (!token.access_token) throw new Error('Kick token response did not include an access token')
-  cachedToken = token.access_token
-  tokenExpiresAt = Date.now() + Math.max(60, Number(token.expires_in || 3600) - 60) * 1000
+  if (!response.ok) {
+    throw new Error(`Kick token request failed: ${response.status}`)
+  }
+
+  const data = await response.json()
+
+  if (!data.access_token) {
+    throw new Error('No access token returned by Kick')
+  }
+
+  cachedToken = data.access_token
+  tokenExpiresAt =
+    Date.now() + Math.max(60, Number(data.expires_in || 3600) - 60) * 1000
+
   return cachedToken
 }
 
-async function kickRequest(path, token) {
-  const response = await fetch(`${KICK_API_URL}${path}`, {
-    headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+async function kickRequest(path, token, baseUrl = KICK_API_URL) {
+  const response = await fetch(`${baseUrl}${path}`, {
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
   })
-  if (!response.ok) throw new Error(`Kick API request failed with ${response.status}`)
+
+  if (!response.ok) {
+    throw new Error(`Kick API request failed: ${response.status}`)
+  }
+
   return response.json()
 }
 
+async function getLiveStreamForBroadcaster(broadcasterUserId, token) {
+  let cursor = ''
+
+  for (let page = 0; page < 5; page += 1) {
+    const query = new URLSearchParams({ limit: '100' })
+    if (cursor) query.set('cursor', cursor)
+
+    const response = await kickRequest(
+      `/livestreams?${query.toString()}`,
+      token,
+      KICK_LIVESTREAM_API_URL
+    )
+    const livestream = response.data?.find(
+      (item) => String(item.broadcaster_user?.id) === String(broadcasterUserId)
+    )
+
+    if (livestream) return livestream
+
+    cursor = response.pagination?.next_cursor || ''
+    if (!cursor) return null
+  }
+
+  return null
+}
+
 export default async function handler(request, response) {
-  const { clientId, clientSecret, channelSlug, allowedOrigin } = getEnvironment()
+  const { channelSlug, allowedOrigin } = getEnvironment()
   response.setHeader('Access-Control-Allow-Origin', allowedOrigin)
   response.setHeader('Cache-Control', 'no-store')
 
@@ -50,25 +106,63 @@ export default async function handler(request, response) {
     response.setHeader('Access-Control-Allow-Headers', 'Content-Type')
     return response.status(204).end()
   }
-  if (request.method !== 'GET') return response.status(405).json({ error: 'Method not allowed' })
-  if (!clientId || !clientSecret) return response.status(500).json({ error: 'Kick server credentials are not configured' })
+
+  if (request.method !== 'GET') {
+    return response.status(405).json({ error: 'Method not allowed' })
+  }
 
   try {
-    const token = await getAppAccessToken(clientId, clientSecret)
-    const channelResponse = await kickRequest(`/channels?slug=${encodeURIComponent(channelSlug)}`, token)
+    const token = await getAppAccessToken()
+
+    const channelResponse = await kickRequest(
+      `/channels?slug=${encodeURIComponent(channelSlug)}`,
+      token
+    )
+
     const channel = channelResponse.data?.[0]
-    if (!channel?.broadcaster_user_id) throw new Error('Kick channel was not found')
 
-    const livestreamResponse = await kickRequest(`/livestreams?broadcaster_user_id=${channel.broadcaster_user_id}&limit=1`, token)
-    const livestream = livestreamResponse.data?.[0] || null
+    if (!channel?.broadcaster_user_id) {
+      return response.status(404).json({
+        apiAvailable: true,
+        isLive: false,
+        followersCount: null,
+        viewerCount: null,
+        title: '',
+        profilePic: '',
+        livestream: null,
+        error: 'Kick channel not found',
+        channel: channelSlug,
+      })
+    }
 
+    const [livestream, userResponse] = await Promise.all([
+      getLiveStreamForBroadcaster(channel.broadcaster_user_id, token),
+      kickRequest(`/users?id=${channel.broadcaster_user_id}`, token),
+    ])
+    const user = userResponse.data?.[0]
+
+    response.setHeader('Content-Type', 'application/json; charset=utf-8')
     return response.status(200).json({
       apiAvailable: true,
+      isLive: Boolean(livestream),
+      followersCount: channel.followers_count ?? channel.follower_count ?? null,
+      viewerCount: livestream?.viewer_count ?? null,
+      title: livestream?.title || channel.stream_title || '',
+      profilePic: user?.profile_picture || livestream?.broadcaster_user?.profile_picture || '',
       livestream,
-      followers_count: channel.followers_count,
-      user: { profile_pic: channel.user?.profile_pic || channel.profile_pic || '' },
     })
-  } catch {
-    return response.status(502).json({ error: 'Kick data is temporarily unavailable' })
+  } catch (error) {
+    console.error('Kick API error:', error)
+
+    return response.status(502).json({
+      apiAvailable: false,
+      isLive: false,
+      followersCount: null,
+      viewerCount: null,
+      title: '',
+      profilePic: '',
+      livestream: null,
+      error: 'Kick data is temporarily unavailable',
+    })
   }
 }
