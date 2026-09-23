@@ -174,15 +174,17 @@ export default async function handler(request, response) {
     const user = userResponse.data?.[0]
     const officialFollowersCount = channel.user?.followers_count ?? null
     const followersCount = officialFollowersCount ?? await getPublicChannelFollowers(channelSlug)
+    const channelStream = channel.stream || null
+    const isLive = Boolean(channelStream?.is_live) || Boolean(livestream)
 
     return response.status(200).json({
       apiAvailable: true,
-      isLive: Boolean(livestream),
+      isLive,
       followersCount,
-      viewerCount: livestream?.viewer_count ?? null,
-      title: livestream?.title || channel.stream_title || '',
+      viewerCount: channelStream?.viewer_count ?? livestream?.viewer_count ?? null,
+      title: channel.stream_title || livestream?.title || '',
       profilePic: user?.profile_picture || livestream?.broadcaster_user?.profile_picture || '',
-      livestream,
+      livestream: livestream || (isLive ? channelStream : null),
     })
   } catch (error) {
     console.error('Kick API error:', error)
