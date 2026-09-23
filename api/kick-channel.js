@@ -1,6 +1,7 @@
 const KICK_API_URL = 'https://api.kick.com/public/v1'
 const KICK_LIVESTREAM_API_URL = 'https://api.kick.com/public/v2'
 const KICK_OAUTH_URL = 'https://id.kick.com/oauth/token'
+const KICK_PAGE_TIMEOUT_MS = 3000
 
 function getEnvironment() {
   const environment = globalThis.process?.env || {}
@@ -96,6 +97,34 @@ async function getLiveStreamForBroadcaster(broadcasterUserId, token) {
   return null
 }
 
+async function getPublicChannelFollowers(channelSlug) {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), KICK_PAGE_TIMEOUT_MS)
+
+  try {
+    const response = await fetch(
+      `https://kick.com/api/v2/channels/${encodeURIComponent(channelSlug)}`,
+      {
+        headers: {
+          Accept: 'application/json',
+          'User-Agent': 'Mozilla/5.0 (compatible; AboshanbKingSite/1.0)',
+        },
+        signal: controller.signal,
+      }
+    )
+
+    if (!response.ok) return null
+
+    const data = await response.json()
+    const followersCount = Number(data?.followersCount ?? data?.followers_count)
+    return Number.isSafeInteger(followersCount) ? followersCount : null
+  } catch {
+    return null
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 export default async function handler(request, response) {
   const { channelSlug, allowedOrigin } = getEnvironment()
   response.setHeader('Access-Control-Allow-Origin', allowedOrigin)
@@ -143,11 +172,13 @@ export default async function handler(request, response) {
       kickRequest(`/users?id=${channel.broadcaster_user_id}`, token),
     ])
     const user = userResponse.data?.[0]
+    const officialFollowersCount = channel.user?.followers_count ?? null
+    const followersCount = officialFollowersCount ?? await getPublicChannelFollowers(channelSlug)
 
     return response.status(200).json({
       apiAvailable: true,
       isLive: Boolean(livestream),
-      followersCount: channel.user?.followers_count ?? null,
+      followersCount,
       viewerCount: livestream?.viewer_count ?? null,
       title: livestream?.title || channel.stream_title || '',
       profilePic: user?.profile_picture || livestream?.broadcaster_user?.profile_picture || '',
