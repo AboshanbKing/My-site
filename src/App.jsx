@@ -30,6 +30,7 @@ function App() {
   const [selectedImage, setSelectedImage] = useState(null)
   const [scrollProgress, setScrollProgress] = useState(0)
   const [showTop, setShowTop] = useState(false)
+  const [visitCount, setVisitCount] = useState(null)
   const t = translations[language]
   useTilt()
 
@@ -48,6 +49,10 @@ function App() {
       active = false
       window.clearInterval(refreshTimer)
     }
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/visits').then((res) => res.json()).then((data) => setVisitCount(data.count)).catch(() => setVisitCount(null))
   }, [])
 
   useEffect(() => {
@@ -98,7 +103,7 @@ function App() {
       <section className="more-section section-wrap" id="links" data-reveal><div className="more-panel"><div><span className="section-kicker">{t.more.kicker}</span><h2>{t.more.title} <span>{language === 'ar' ? 'الروابط' : 'LINKS'}</span></h2><p>{t.more.description}</p></div>{moreLinks.length > 0 && <a className="coming-soon" href={moreLinks[0].url} target="_blank" rel="noopener noreferrer"><Sparkles size={19} /><span>{t.more.allLinks}</span></a>}</div></section>
       <section className="gallery-section section-wrap" id="gallery" data-reveal><div className="section-heading"><div><span className="section-kicker">{t.gallery.kicker}</span><h2>{t.gallery.title} {t.gallery.label && <span>{t.gallery.label}</span>}</h2></div><p className="heading-note">{t.gallery.note}</p></div><div className="gallery-grid">{galleryItems.map((item, index) => <button className={`gallery-item gallery-item-${index + 1}`} type="button" key={item.src} onClick={() => setSelectedImage(index)}><img src={item.src} alt={item.alt} loading="lazy" /><span className="gallery-overlay"><span>{t.gallery.viewFrame} 0{index + 1}</span><ArrowUpRight size={19} /></span></button>)}</div></section>
     </main>
-    <footer className="footer section-wrap"><a className="brand-mark" href="#home"><img src={`${import.meta.env.BASE_URL}images/logo.png`} alt="Aboshanb King" /></a><p>© 2026 Aboshanb King<br /><span>{t.footer.rights}</span></p><div className="footer-socials">{socialLinks.map((social) => { const Icon = socialIcon[social.icon]; return <button key={social.name} type="button" aria-label={social.name} onClick={() => openExternal(social.url)}><Icon size={17} /></button> })}</div></footer>
+    <footer className="footer section-wrap"><a className="brand-mark" href="#home"><img src={`${import.meta.env.BASE_URL}images/logo.png`} alt="Aboshanb King" /></a><p>© 2026 Aboshanb King<br /><span>{t.footer.rights}</span></p><div className="footer-socials">{socialLinks.map((social) => { const Icon = socialIcon[social.icon]; return <button key={social.name} type="button" aria-label={social.name} onClick={() => openExternal(social.url)}><Icon size={17} /></button> })}</div>{visitCount !== null && <p className="visit-counter">{language === 'ar' ? `عدد الزيارات: ${visitCount.toLocaleString()}` : `Site visits: ${visitCount.toLocaleString()}`}</p>}</footer>
     <MusicPlayer language={language} />
     {showTop && <button className="back-to-top" type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label={t.accessibility.backToTop}><ChevronLeft size={17} /></button>}
     {selectedImage !== null && <div className="lightbox" role="dialog" aria-modal="true" aria-label={t.accessibility.galleryViewer} onClick={() => setSelectedImage(null)}><button className="lightbox-close" type="button" onClick={() => setSelectedImage(null)} aria-label={t.accessibility.closeGallery}><X size={24} /></button><button className="lightbox-nav lightbox-prev" type="button" onClick={(event) => { event.stopPropagation(); setSelectedImage((selectedImage - 1 + galleryItems.length) % galleryItems.length) }} aria-label={t.accessibility.previousImage}><ChevronLeft size={28} /></button><img src={galleryItems[selectedImage].src} alt={galleryItems[selectedImage].alt} onClick={(event) => event.stopPropagation()} /><button className="lightbox-nav lightbox-next" type="button" onClick={(event) => { event.stopPropagation(); setSelectedImage((selectedImage + 1) % galleryItems.length) }} aria-label={t.accessibility.nextImage}><ChevronRight size={28} /></button></div>}
