@@ -99,7 +99,10 @@ async function getLiveStreamForBroadcaster(broadcasterUserId, token) {
 export default async function handler(request, response) {
   const { channelSlug, allowedOrigin } = getEnvironment()
   response.setHeader('Access-Control-Allow-Origin', allowedOrigin)
-  response.setHeader('Cache-Control', 'no-store')
+  response.setHeader('Cache-Control', 'no-store, no-cache, max-age=0, must-revalidate')
+  response.setHeader('CDN-Cache-Control', 'no-store')
+  response.setHeader('Vercel-CDN-Cache-Control', 'no-store')
+  response.setHeader('Content-Type', 'application/json; charset=utf-8')
 
   if (request.method === 'OPTIONS') {
     response.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
@@ -141,11 +144,10 @@ export default async function handler(request, response) {
     ])
     const user = userResponse.data?.[0]
 
-    response.setHeader('Content-Type', 'application/json; charset=utf-8')
     return response.status(200).json({
       apiAvailable: true,
       isLive: Boolean(livestream),
-      followersCount: channel.followers_count ?? channel.follower_count ?? null,
+      followersCount: channel.user?.followers_count ?? null,
       viewerCount: livestream?.viewer_count ?? null,
       title: livestream?.title || channel.stream_title || '',
       profilePic: user?.profile_picture || livestream?.broadcaster_user?.profile_picture || '',
