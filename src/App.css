@@ -1,6 +1,32 @@
 :root { --bg: #020712; --panel: #06152a; --blue: #00a8ff; --cyan: #00d9ff; --white: #f5f7fa; --muted: #8b9bb4; --line: rgba(139,155,180,.19); --font-display: 'Barlow Condensed', sans-serif; }
 .hero-visual, .followers-card, .stream-frame, .live-aside, .social-card, .more-panel, .gallery-item { --tilt-rotate-x: 0deg; --tilt-rotate-y: 0deg; --tilt-scale: 1; --tilt-perspective: 900px; --tilt-lift: 0px; transform: perspective(var(--tilt-perspective)) rotateX(var(--tilt-rotate-x)) rotateY(var(--tilt-rotate-y)) translateY(var(--tilt-lift)) scale(var(--tilt-scale)); transform-style: preserve-3d; transition: transform .35s ease-out; }
-.site-shell { min-height: 100vh; overflow: hidden; background: radial-gradient(circle at 75% 5%, rgba(0,168,255,.12), transparent 28rem), var(--bg); }
+.site-shell {
+	min-height: 100vh;
+	overflow: hidden;
+	background: radial-gradient(circle at 75% 5%, rgba(0,168,255,.12), transparent 28rem), var(--bg);
+	position: relative;
+}
+.site-shell::before {
+	content: '';
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	background: linear-gradient(120deg, #020712, #04101f, #020a16, #051426, #020712);
+	background-size: 400% 400%;
+	animation: gradient-shift 22s ease-in-out infinite;
+}
+
+@keyframes gradient-shift {
+	0% { background-position: 0% 50%; }
+	50% { background-position: 100% 50%; }
+	100% { background-position: 0% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.site-shell::before {
+		animation-duration: 60s;
+	}
+}
 .loading-line { position: fixed; z-index: 100; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, var(--cyan), transparent); animation: load 1.3s ease-out forwards; }
 .scroll-progress { position: fixed; top: 0; left: 0; z-index: 99; height: 2px; background: var(--cyan); box-shadow: 0 0 14px var(--cyan); }
 .navbar { position: fixed; z-index: 20; top: 14px; left: 50%; width: min(1180px, calc(100% - 40px)); transform: translateX(-50%); display: flex; align-items: center; justify-content: space-between; padding: 11px 14px 11px 18px; border: 1px solid var(--line); border-radius: 7px; background: rgba(2,7,18,.72); backdrop-filter: blur(18px); box-shadow: 0 16px 45px rgba(0,0,0,.22); }
