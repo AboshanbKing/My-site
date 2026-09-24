@@ -22,10 +22,31 @@ function IntroScreen() {
       setPhase('removed')
     }, removeDelay)
 
+    let played = false
+    const audio = new Audio(`${import.meta.env.BASE_URL}audio/welcome.mp3`)
+    audio.volume = 0.6
+    const tryPlay = () => {
+      if (played) return
+      audio.play().then(() => { played = true }).catch(() => {})
+    }
+    tryPlay()
+    const fallbackPlay = () => {
+      if (played) return
+      tryPlay()
+    }
+    window.addEventListener('click', fallbackPlay)
+    window.addEventListener('keydown', fallbackPlay)
+    window.addEventListener('scroll', fallbackPlay)
+    window.addEventListener('touchstart', fallbackPlay)
+
     return () => {
       window.clearTimeout(exitTimer)
       window.clearTimeout(removeTimer)
       document.body.style.overflow = originalOverflow
+      window.removeEventListener('click', fallbackPlay)
+      window.removeEventListener('keydown', fallbackPlay)
+      window.removeEventListener('scroll', fallbackPlay)
+      window.removeEventListener('touchstart', fallbackPlay)
     }
   }, [])
 
