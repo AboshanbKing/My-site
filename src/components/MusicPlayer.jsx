@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronLeft, ChevronRight, Music2, Pause, Play, Repeat2, Volume2, VolumeX } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronsRight, ChevronsLeft, Music2, Pause, Play, Repeat2, Volume2, VolumeX } from 'lucide-react'
 
 const TRACKS = [
   { name: 'Music 1', src: `${import.meta.env.BASE_URL}audio/music1.mp3` },
@@ -21,6 +21,7 @@ function MusicPlayer({ language = 'en' }) {
   const [enabled, setEnabled] = useState(() => localStorage.getItem('music-enabled') === 'true')
   const [loopEnabled, setLoopEnabled] = useState(() => localStorage.getItem('music-loop') !== 'false')
   const [playing, setPlaying] = useState(false)
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem('music-collapsed') === 'true')
   const [trackAvailability, setTrackAvailability] = useState(() => TRACKS.map(() => true))
   const [previousVolume, setPreviousVolume] = useState(() => readStoredNumber('music-volume', DEFAULT_VOLUME))
   const available = trackAvailability[currentTrack]
@@ -124,18 +125,22 @@ function MusicPlayer({ language = 'en' }) {
   }
 
   const toggleLoop = () => setLoopEnabled((isLooping) => !isLooping)
+  const toggleCollapsed = () => setCollapsed((isCollapsed) => { localStorage.setItem('music-collapsed', String(!isCollapsed)); return !isCollapsed })
 
-  return <aside className={`music-player${playing ? ' is-playing' : ''}${available ? '' : ' is-unavailable'}`} aria-label={labels.player}>
+  return <aside className={`music-player${playing ? ' is-playing' : ''}${available ? '' : ' is-unavailable'}${collapsed ? ' is-collapsed' : ''}`} aria-label={labels.player}>
     <audio ref={audioRef} loop={loopEnabled} preload="metadata" onEnded={handleTrackEnded} onError={handleAudioError} />
     <span className="music-player-icon" aria-hidden="true"><Music2 size={16} /></span>
-    <span className="music-player-indicator" aria-hidden="true"><i /><i /><i /></span>
-    <span className="music-player-track" aria-live="polite">{available ? TRACKS[currentTrack].name : labels.unavailable}</span>
-    <button className="music-player-button" type="button" onClick={selectPreviousTrack} disabled={TRACKS.length < 2} aria-label={labels.previous} title={labels.previous}><ChevronLeft size={16} /></button>
-    <button className="music-player-button" type="button" onClick={togglePlayback} disabled={!available} aria-label={playing ? labels.pause : labels.play} title={playing ? labels.pause : labels.play}>{playing ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}</button>
-    <button className="music-player-button" type="button" onClick={selectNextTrack} disabled={TRACKS.length < 2} aria-label={labels.next} title={labels.next}><ChevronRight size={16} /></button>
-    <button className={`music-player-button${loopEnabled ? ' is-active' : ''}`} type="button" onClick={toggleLoop} aria-label={loopEnabled ? labels.loopOn : labels.loopOff} title={loopEnabled ? labels.loopOn : labels.loopOff} aria-pressed={loopEnabled}><Repeat2 size={16} /></button>
-    <button className="music-player-button music-player-volume-button" type="button" onClick={toggleMute} disabled={!available} aria-label={muted ? labels.unmute : labels.mute} title={muted ? labels.unmute : labels.mute}>{muted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}</button>
-    <input className="music-player-volume" type="range" min="0" max="1" step="0.01" value={muted ? 0 : volume} onChange={handleVolumeChange} disabled={!available} aria-label={labels.volume} title={labels.volume} />
+    {!collapsed && <>
+      <span className="music-player-indicator" aria-hidden="true"><i /><i /><i /></span>
+      <span className="music-player-track" aria-live="polite">{available ? TRACKS[currentTrack].name : labels.unavailable}</span>
+      <button className="music-player-button" type="button" onClick={selectPreviousTrack} disabled={TRACKS.length < 2} aria-label={labels.previous} title={labels.previous}><ChevronLeft size={16} /></button>
+      <button className="music-player-button" type="button" onClick={togglePlayback} disabled={!available} aria-label={playing ? labels.pause : labels.play} title={playing ? labels.pause : labels.play}>{playing ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}</button>
+      <button className="music-player-button" type="button" onClick={selectNextTrack} disabled={TRACKS.length < 2} aria-label={labels.next} title={labels.next}><ChevronRight size={16} /></button>
+      <button className={`music-player-button${loopEnabled ? ' is-active' : ''}`} type="button" onClick={toggleLoop} aria-label={loopEnabled ? labels.loopOn : labels.loopOff} title={loopEnabled ? labels.loopOn : labels.loopOff} aria-pressed={loopEnabled}><Repeat2 size={16} /></button>
+      <button className="music-player-button music-player-volume-button" type="button" onClick={toggleMute} disabled={!available} aria-label={muted ? labels.unmute : labels.mute} title={muted ? labels.unmute : labels.mute}>{muted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}</button>
+      <input className="music-player-volume" type="range" min="0" max="1" step="0.01" value={muted ? 0 : volume} onChange={handleVolumeChange} disabled={!available} aria-label={labels.volume} title={labels.volume} />
+    </>}
+    <button className="music-player-button music-player-toggle" type="button" onClick={toggleCollapsed} aria-label={collapsed ? 'Expand player' : 'Collapse player'} title={collapsed ? 'Expand player' : 'Collapse player'}>{collapsed ? <ChevronsLeft size={16} /> : <ChevronsRight size={16} />}</button>
   </aside>
 }
 

@@ -1,59 +1,69 @@
 import { useEffect, useState } from 'react'
 import './IntroScreen.css'
 
-const INTRO_EXIT_DELAY = 1050
-const INTRO_REMOVE_DELAY = 1580
-const REDUCED_EXIT_DELAY = 80
-const REDUCED_REMOVE_DELAY = 240
+const BOOT_MESSAGES = [
+  'CONNECTING TO KICK...',
+  'LOADING PROFILE...',
+  'INITIALIZING STREAM...',
+  'READY.',
+]
 
 function IntroScreen() {
-  const [phase, setPhase] = useState('visible')
+  const [phase, setPhase] = useState('enter')
+  const [progress, setProgress] = useState(0)
+  const [messageIndex, setMessageIndex] = useState(0)
 
   useEffect(() => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const exitDelay = prefersReducedMotion ? REDUCED_EXIT_DELAY : INTRO_EXIT_DELAY
-    const removeDelay = prefersReducedMotion ? REDUCED_REMOVE_DELAY : INTRO_REMOVE_DELAY
-    const originalOverflow = document.body.style.overflow
+    if (phase !== 'booting') return
 
-    document.body.style.overflow = 'hidden'
-    const exitTimer = window.setTimeout(() => setPhase('exiting'), exitDelay)
-    const removeTimer = window.setTimeout(() => {
-      document.body.style.overflow = originalOverflow
-      setPhase('removed')
-    }, removeDelay)
+    const progressTimer = window.setInterval(() => {
+      setProgress((current) => {
+        const next = current + 4
+        return next >= 100 ? 100 : next
+      })
+    }, 45)
 
-    let played = false
-    const audio = new Audio(`${import.meta.env.BASE_URL}audio/welcome.mp3`)
-    audio.volume = 0.6
-    const tryPlay = () => {
-      if (played) return
-      audio.play().then(() => { played = true }).catch(() => {})
-    }
-    tryPlay()
-    const fallbackPlay = () => {
-      if (played) return
-      tryPlay()
-    }
-    window.addEventListener('click', fallbackPlay)
-    window.addEventListener('keydown', fallbackPlay)
-    window.addEventListener('scroll', fallbackPlay)
-    window.addEventListener('touchstart', fallbackPlay)
+    const messageTimer = window.setInterval(() => {
+      setMessageIndex((current) => Math.min(current + 1, BOOT_MESSAGES.length - 1))
+    }, 500)
+
+    const exitTimer = window.setTimeout(() => setPhase('exiting'), 2100)
+    const removeTimer = window.setTimeout(() => setPhase('removed'), 2700)
 
     return () => {
+      window.clearInterval(progressTimer)
+      window.clearInterval(messageTimer)
       window.clearTimeout(exitTimer)
       window.clearTimeout(removeTimer)
-      document.body.style.overflow = originalOverflow
-      window.removeEventListener('click', fallbackPlay)
-      window.removeEventListener('keydown', fallbackPlay)
-      window.removeEventListener('scroll', fallbackPlay)
-      window.removeEventListener('touchstart', fallbackPlay)
     }
-  }, [])
+  }, [phase])
 
   if (phase === 'removed') return null
 
+  const handleEnter = () => {
+    const audio = new Audio(`${import.meta.env.BASE_URL}audio/welcome.mp3`)
+    audio.volume = 0.6
+    audio.play().catch(() => {})
+    setPhase('booting')
+  }
+
   return <div className={`intro-screen intro-screen--${phase}`} aria-label="ABOSHANB" role="status">
-    <span className="intro-screen-word">ABOSHANB</span>
+    {phase === 'enter' && <>
+      <span className="intro-screen-word">ABOSHANB</span>
+      <span className="intro-screen-subword">KING</span>
+      <button className="intro-enter-button" type="button" onClick={handleEnter}>
+        ENTER ABOSHANB WEBSITE
+      </button>
+    </>}
+    {(phase === 'booting' || phase === 'exiting') && <div className="boot-screen">
+      <div className="boot-scanline" />
+      <span className="boot-word">ABOSHANB</span>
+      <div className="boot-bar-track">
+        <div className="boot-bar-fill" style={{ width: `${progress}%` }} />
+      </div>
+      <span className="boot-message">{BOOT_MESSAGES[messageIndex]}</span>
+      <span className="boot-percent">{progress}%</span>
+    </div>}
   </div>
 }
 

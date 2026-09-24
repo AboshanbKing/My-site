@@ -154,3 +154,12 @@ html[dir='rtl'] .offline-state, html[dir='rtl'] .footer p { text-align: center; 
 	position: relative;
 	z-index: 2;
 }
+
+.music-player.is-collapsed {
+  gap: 0;
+  padding: 6px;
+}
+
+.music-player-toggle {
+  margin-left: 2px;
+}
