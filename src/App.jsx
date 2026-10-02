@@ -15,7 +15,6 @@ import './App.css'
 const KICK_URL = 'https://kick.com/aboshanb-king'
 const KICK_EMBED_URL = 'https://player.kick.com/aboshanb-king'
 const galleryItems = [
-  { src: `${import.meta.env.BASE_URL}images/My photo.png`, alt: 'Aboshanb King portrait' },
   { src: `${import.meta.env.BASE_URL}images/Aboshanb car.png`, alt: 'Aboshanb King beside a car at night' },
   { src: `${import.meta.env.BASE_URL}images/Aboshanb car edit.png`, alt: 'Aboshanb King car edit' },
 ]
