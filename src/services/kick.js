@@ -20,6 +20,7 @@ export function normalizeKickChannel(data) {
     followersCount: followersValue !== undefined && followersValue !== null && Number.isFinite(followersCount) ? followersCount : null,
     viewerCount: rawViewerCount !== undefined && rawViewerCount !== null && rawViewerCount !== '' && Number.isFinite(viewerCount) ? viewerCount : null,
     title: data?.title || livestream?.session_title || '',
+    categoryName: data?.categoryName || data?.category?.name || livestream?.category?.name || '',
     streamImage: data?.streamImage || thumbnail || data?.profilePic || data?.user?.profile_pic || FALLBACK_STREAM_IMAGE,
   }
 }

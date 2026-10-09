@@ -6,7 +6,7 @@ import { translations } from './config/translations'
 import { getKickChannel, normalizeKickChannel } from './services/kick'
 import CursorEffect from './components/CursorEffect'
 import ParticleBackground from './components/ParticleBackground'
-import StreamStatusCard from './components/StreamStatusCard'
+import LiveShowcase from './components/LiveShowcase'
 import IntroScreen from './components/IntroScreen'
 import MusicPlayer from './components/MusicPlayer'
 import useTilt from './hooks/useTilt'
@@ -14,6 +14,7 @@ import './App.css'
 
 const KICK_URL = 'https://kick.com/aboshanb-king'
 const KICK_EMBED_URL = 'https://player.kick.com/aboshanb-king'
+const KICK_CHAT_URL = 'https://kick.com/popout/aboshanb-king/chat'
 const galleryItems = [
   { src: `${import.meta.env.BASE_URL}images/Aboshanb car.png`, alt: 'Aboshanb King beside a car at night' },
   { src: `${import.meta.env.BASE_URL}images/Aboshanb car edit.png`, alt: 'Aboshanb King car edit' },
@@ -27,6 +28,7 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [channel, setChannel] = useState(() => normalizeKickChannel({}))
   const [kickLoading, setKickLoading] = useState(true)
+  const [syncing, setSyncing] = useState(false)
   const [selectedImage, setSelectedImage] = useState(null)
   const [scrollProgress, setScrollProgress] = useState(0)
   const [showTop, setShowTop] = useState(false)
@@ -89,6 +91,10 @@ function App() {
   const closeMenu = () => setMenuOpen(false)
   const scrollTo = (id) => { document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }); closeMenu() }
   const changeLanguage = (nextLanguage) => { setLanguage(nextLanguage); closeMenu() }
+  const syncChannel = () => {
+    setSyncing(true)
+    return getKickChannel().then((data) => setChannel(normalizeKickChannel(data))).catch(() => {}).finally(() => setSyncing(false))
+  }
 
   return <>
     <IntroScreen />
@@ -98,7 +104,7 @@ function App() {
     <header className="navbar"><a className="brand-mark" href="#home" onClick={closeMenu} aria-label={t.accessibility.home}><img src={`${import.meta.env.BASE_URL}images/logo.png`} alt="Aboshanb King" /></a><nav className={menuOpen ? 'nav-links is-open' : 'nav-links'} aria-label={t.accessibility.toggleNavigation}>{[['home', t.nav.home], ['live', t.nav.live], ['socials', t.nav.socials], ['links', t.nav.links], ['gallery', t.nav.gallery]].map(([id, label]) => <a key={id} href={`#${id}`} onClick={closeMenu}>{label}</a>)}<button className="nav-kick" type="button" onClick={() => openExternal(KICK_URL)}><Radio size={15} /> {t.nav.liveOnKick}</button></nav>{visitCount !== null && <span className="visit-counter-nav">👁 {visitCount.toLocaleString()}</span>}<div className="language-switcher" aria-label={t.switcherLabel}>{['en', 'ar'].map((option) => <button key={option} className={language === option ? 'is-active' : ''} type="button" onClick={() => changeLanguage(option)} aria-label={option === 'en' ? 'English' : 'Arabic'} aria-pressed={language === option}>{option.toUpperCase()}</button>)}</div><button className="menu-toggle" type="button" onClick={() => setMenuOpen(!menuOpen)} aria-label={t.accessibility.toggleNavigation} aria-expanded={menuOpen}>{menuOpen ? <X size={23} /> : <Menu size={23} />}</button></header>
     <main>
       <section className="hero section-wrap" id="home"><ParticleBackground /><div className="hero-grid" /><div className="hero-copy"><div className="eyebrow"><span className="status-dot" /> {t.hero.official}</div><h1>ABOSHANB <span>KING</span></h1><p className="hero-role">{t.hero.role} <span>//</span> {t.hero.creator}</p><p className="hero-description">{t.hero.description}<br />{t.hero.descriptionSecond}</p><div className="hero-actions"><button className="button button-primary" type="button" onClick={() => scrollTo('live')}><Play size={17} fill="currentColor" /> {t.hero.watchLive}</button><button className="button button-ghost" type="button" onClick={() => openExternal(KICK_URL)}>{t.hero.followKick} <ArrowUpRight size={17} /></button></div><div className="hero-meta"><span><ShieldCheck size={16} /> {t.hero.verified}</span><span><Gamepad2 size={16} /> {t.hero.entertainment}</span></div></div><div className="hero-visual"><div className="hero-ring" /><img src={`${import.meta.env.BASE_URL}images/image.webp`} alt="Aboshanb King in a blue gaming setup" /><div className="hero-caption"><span>ABOSHANB / 01</span><span>{t.hero.caption}</span></div></div><div className="followers-card"><div className="card-icon"><Command size={18} /></div><div><p>{t.hero.followers}</p><strong>{kickLoading ? '...' : channel.followersCount ?? '--'}</strong></div><span className="live-pulse" title="Public Kick channel data" /></div></section>
-      <section className="live-section section-wrap" id="live" data-reveal><div className="section-heading"><div><span className="section-kicker">{t.live.kicker}</span><h2>{t.live.title} <span>KICK</span></h2></div><div className="section-status"><span className={channel.isLive ? 'status-dot live' : 'status-dot'} /> {!channel.apiAvailable ? t.live.unavailable : channel.isLive ? t.live.liveNow : t.live.offline}</div></div><div className="live-layout"><div className="stream-frame">{channel.isLive ? <iframe src={KICK_EMBED_URL} title="Aboshanb King live stream" allowFullScreen allow="autoplay; fullscreen" /> : <div className="offline-state"><div className="offline-orb"><Radio size={35} /></div><span className="offline-label">{channel.apiAvailable ? t.live.offline : t.live.unavailable}</span><h3>{channel.apiAvailable ? t.live.nextSession : t.live.unavailable}</h3><p>{t.live.followNotice}</p><button className="button button-primary" type="button" onClick={() => openExternal(KICK_URL)}>{t.hero.followKick} <ExternalLink size={16} /></button></div>}</div><StreamStatusCard channel={channel} language={language} /></div></section>
+      <section className="live-section section-wrap" id="live" data-reveal><div className="section-heading"><div><span className="section-kicker">{t.live.kicker}</span><h2>{t.live.title} <span>KICK</span></h2></div><div className="section-status"><span className={channel.isLive ? 'status-dot live' : 'status-dot'} /> {!channel.apiAvailable ? t.live.unavailable : channel.isLive ? t.live.liveNow : t.live.offline}</div></div><LiveShowcase channel={channel} language={language} kickUrl={KICK_URL} embedUrl={KICK_EMBED_URL} chatUrl={KICK_CHAT_URL} onSync={syncChannel} syncing={syncing} /></section>
       <section className="socials-section section-wrap" id="socials" data-reveal><div className="section-heading"><div><span className="section-kicker">{t.socials.kicker}</span><h2>{t.socials.title} <span>{language === 'ar' ? '' : 'SOCIALS'}</span></h2></div><p className="heading-note">{t.socials.note}</p></div><div className="social-grid">{socialLinks.map((social) => { const Icon = socialIcon[social.icon]; return <article className="social-card" key={social.name}><div className="social-top"><div className="social-icon"><Icon size={21} /></div><ArrowUpRight className="social-arrow" size={19} /></div><h3>{social.name}</h3><span>{t.socials.handles[social.name] || social.handle}</span><p>{t.socials.descriptions[social.name]}</p><button className="text-link" type="button" onClick={() => openExternal(social.url)}>{t.socials.visit} {social.name} <ExternalLink size={14} /></button></article> })}</div></section>
       <section className="more-section section-wrap" id="links" data-reveal><div className="more-panel"><div><span className="section-kicker">{t.more.kicker}</span><h2>{t.more.title} <span>{language === 'ar' ? 'الروابط' : 'LINKS'}</span></h2><p>{t.more.description}</p></div>{moreLinks.length > 0 && <a className="coming-soon" href={moreLinks[0].url} target="_blank" rel="noopener noreferrer"><Sparkles size={19} /><span>{t.more.allLinks}</span></a>}</div></section>
       <section className="gallery-section section-wrap" id="gallery" data-reveal><div className="section-heading"><div><span className="section-kicker">{t.gallery.kicker}</span><h2>{t.gallery.title} {t.gallery.label && <span>{t.gallery.label}</span>}</h2></div><p className="heading-note">{t.gallery.note}</p></div><div className="gallery-grid">{galleryItems.map((item, index) => <button className={`gallery-item gallery-item-${index + 1}`} type="button" key={item.src} onClick={() => setSelectedImage(index)}><img src={item.src} alt={item.alt} loading="lazy" /><span className="gallery-overlay"><span>{t.gallery.viewFrame} 0{index + 1}</span><ArrowUpRight size={19} /></span></button>)}</div></section>
