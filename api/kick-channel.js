@@ -185,7 +185,6 @@ export default async function handler(request, response) {
       viewerCount: channelStream?.viewer_count ?? livestream?.viewer_count ?? null,
       title: channel.stream_title || livestream?.title || '',
       categoryName: channel.category?.name || '',
-      debugChannel: channel,
       profilePic: user?.profile_picture || livestream?.broadcaster_user?.profile_picture || '',
       livestream: livestream || (isLive ? channelStream : null),
     }
