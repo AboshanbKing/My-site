@@ -54,7 +54,7 @@ function App() {
   }, [])
 
   useEffect(() => {
-    fetch('/api/visits').then((res) => res.json()).then((data) => setVisitCount(data.count)).catch(() => setVisitCount(null))
+    fetch('https://my-site-zeta-rose.vercel.app/api/visits').then((res) => res.json()).then((data) => setVisitCount(data.count)).catch(() => setVisitCount(null))
   }, [])
 
   useEffect(() => {
