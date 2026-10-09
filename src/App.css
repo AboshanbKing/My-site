@@ -154,6 +154,39 @@ html[dir='rtl'] .offline-state, html[dir='rtl'] .footer p { text-align: center; 
 	.stream-status-media { height: 150px; }
 }
 
+.showcase-section { padding-block: 0 48px; }
+.showcase-card { padding: 24px; border: 1px solid rgba(0,217,255,.28); border-radius: 18px; background: linear-gradient(160deg, rgba(6,21,42,.92), rgba(2,7,18,.78)); box-shadow: 0 0 40px rgba(0,168,255,.1), inset 0 0 40px rgba(0,168,255,.04); }
+.showcase-card-head { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+.showcase-badge { display: grid; place-items: center; width: 46px; height: 46px; flex: 0 0 auto; color: var(--cyan); border: 1px solid rgba(0,217,255,.35); border-radius: 12px; background: rgba(0,168,255,.12); }
+.showcase-card-heading { flex: 1; min-width: 0; }
+.showcase-card-heading h3 { font-family: var(--font-display); font-size: 19px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.showcase-card-heading p { margin-top: 3px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.showcase-card-tools { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.auto-pill { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; color: var(--cyan); border: 1px solid rgba(0,217,255,.35); border-radius: 999px; background: rgba(0,168,255,.08); font-size: 10px; font-weight: 700; letter-spacing: .08em; }
+.auto-pill i { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+.showcase-arrow { display: grid; place-items: center; width: 34px; height: 34px; color: var(--white); border: 1px solid var(--line); border-radius: 50%; background: rgba(2,7,18,.5); transition: border-color .25s, color .25s; }
+.showcase-arrow:hover { color: var(--cyan); border-color: var(--cyan); }
+.clips-scroller { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 14px; direction: ltr; scroll-snap-type: x proximity; scrollbar-width: thin; scrollbar-color: rgba(0,217,255,.5) transparent; }
+.clip-card { flex: 0 0 min(300px, 78%); overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: rgba(2,7,18,.6); color: inherit; text-decoration: none; scroll-snap-align: start; transition: border-color .25s, transform .25s; }
+.clip-card:hover { border-color: rgba(0,217,255,.55); transform: translateY(-3px); }
+.clip-thumb { position: relative; aspect-ratio: 16 / 9; background: #030914; }
+.clip-thumb img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.clip-rank, .clip-duration { position: absolute; top: 10px; padding: 4px 9px; border-radius: 6px; background: rgba(2,7,18,.82); font-size: 11px; font-weight: 700; letter-spacing: .06em; }
+.clip-rank { left: 10px; color: var(--cyan); border: 1px solid rgba(0,217,255,.45); }
+.clip-duration { right: 10px; color: var(--white); }
+.clip-play { position: absolute; top: 50%; left: 50%; display: grid; place-items: center; width: 54px; height: 54px; transform: translate(-50%, -50%); color: #00101c; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 24px rgba(0,217,255,.45); transition: transform .25s; }
+.clip-card:hover .clip-play { transform: translate(-50%, -50%) scale(1.08); }
+.clip-body { padding: 14px 16px 16px; }
+.clip-body h4 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.8em; font-size: 14px; font-weight: 700; line-height: 1.4; }
+.clip-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; color: var(--muted); font-size: 12px; }
+.clip-meta span { display: inline-flex; align-items: center; gap: 6px; }
+.clip-watch { color: var(--cyan); font-weight: 700; }
+.showcase-open-link { display: inline-flex; align-items: center; gap: 7px; margin-top: 6px; color: var(--cyan); font-size: 12px; font-weight: 700; text-decoration: none; }
+.showcase-open-link:hover { color: var(--white); }
+.tiktok-embed-wrap { display: flex; justify-content: center; min-height: 200px; overflow: hidden; border-radius: 12px; }
+.tiktok-embed-wrap blockquote { margin: 0 auto; }
+@media (max-width: 650px) { .showcase-card { padding: 16px; } .showcase-card-head { flex-wrap: wrap; } .showcase-card-tools { width: 100%; justify-content: flex-end; } }
+
 @media (prefers-reduced-motion: reduce) {
 	.stream-status-badge.is-live i { animation: none; }
 }
