@@ -1,6 +1,7 @@
 const KICK_PROXY_URL = import.meta.env.VITE_KICK_API_URL || '/api/kick-channel'
 const FALLBACK_STREAM_IMAGE = `${import.meta.env.BASE_URL}images/image.webp`
 const KICK_CLIPS_URL = import.meta.env.VITE_KICK_CLIPS_URL || KICK_PROXY_URL.replace('kick-channel', 'kick-clips')
+const KICK_VIDEOS_URL = import.meta.env.VITE_KICK_VIDEOS_URL || KICK_PROXY_URL.replace('kick-channel', 'kick-videos')
 
 export async function getKickChannel() {
   const response = await fetch(KICK_PROXY_URL, { headers: { Accept: 'application/json' } })
@@ -13,6 +14,13 @@ export async function getKickClips() {
   if (!response.ok) throw new Error(`Kick clips request failed with ${response.status}`)
   const data = await response.json()
   return Array.isArray(data?.clips) ? data.clips : []
+}
+
+export async function getKickVideos() {
+  const response = await fetch(KICK_VIDEOS_URL, { headers: { Accept: 'application/json' } })
+  if (!response.ok) throw new Error(`Kick videos request failed with ${response.status}`)
+  const data = await response.json()
+  return Array.isArray(data?.videos) ? data.videos : []
 }
 
 export function normalizeKickChannel(data) {
